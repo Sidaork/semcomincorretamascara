@@ -5,185 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classificador de Imagens</title>
     <style>
-        :root {
-            --primary-color: #4285F4;
-            --success-color: #34A853;
-            --warning-color: #FBBC05;
-            --danger-color: #EA4335;
-            --light-gray: #F1F3F4;
-            --dark-gray: #5F6368;
-        }
         body {
-            font-family: 'Google Sans', Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f8f9fa;
-            color: #202124;
+            text-align: center;
+            background-color: #f5f7fa;
         }
         #app-container {
             background-color: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         h1 {
-            color: var(--primary-color);
-            margin-bottom: 8px;
-            font-weight: 500;
+            color: #2c3e50;
+            margin-bottom: 10px;
         }
         .subtitle {
-            color: var(--dark-gray);
-            margin-bottom: 24px;
-            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 25px;
         }
         #image-container {
             margin: 20px 0;
             min-height: 250px;
-            border: 2px dashed #DADCE0;
-            border-radius: 8px;
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            background-color: var(--light-gray);
-            transition: all 0.3s;
-        }
-        #image-container.drag-over {
-            border-color: var(--primary-color);
-            background-color: #E8F0FE;
+            overflow: hidden;
+            background-color: #f8f9fa;
         }
         #image-preview {
             max-width: 100%;
             max-height: 350px;
             display: none;
-            border-radius: 4px;
+            border-radius: 5px;
         }
         #upload-label {
             padding: 30px;
             cursor: pointer;
-            color: var(--dark-gray);
-            text-align: center;
+            color: #7f8c8d;
         }
         #controls {
-            margin: 24px 0;
-            display: flex;
-            justify-content: center;
-            gap: 16px;
+            margin: 25px 0;
         }
         .button {
-            background-color: var(--primary-color);
+            background-color: #3498db;
             color: white;
-            padding: 10px 24px;
+            padding: 12px 30px;
             border: none;
-            border-radius: 4px;
+            border-radius: 30px;
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            min-width: 160px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .button:hover {
-            background-color: #3367D6;
-            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         .button:disabled {
-            background-color: var(--light-gray);
-            color: var(--dark-gray);
+            background-color: #95a5a6;
             cursor: not-allowed;
+            transform: none;
             box-shadow: none;
         }
         #result {
-            margin-top: 24px;
+            margin-top: 25px;
             padding: 20px;
-            border-radius: 8px;
-            background-color: var(--light-gray);
-            transition: all 0.3s;
+            border-radius: 10px;
+            min-height: 100px;
+            transition: all 0.5s;
+            background-color: #f8f9fa;
         }
-        .top-result {
-            background-color: #E6F4EA;
-            border-left: 4px solid var(--success-color);
-        }
-        .result-item {
-            margin-bottom: 16px;
-            padding: 12px;
-            border-radius: 4px;
-            background-color: white;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .result-label {
-            font-weight: 500;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .confidence-bar-container {
-            height: 8px;
-            background-color: #E0E0E0;
-            border-radius: 4px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-        .confidence-bar {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
-            transition: width 0.5s ease-out;
-        }
-        .confidence-value {
-            font-size: 13px;
-            color: var(--dark-gray);
-        }
-        .loading-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 5px;
         }
         .loading {
             display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(66,133,244,0.2);
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.1);
             border-radius: 50%;
-            border-top-color: var(--primary-color);
+            border-top-color: #3498db;
             animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        .error-message {
-            color: var(--danger-color);
-            background-color: #FCE8E6;
-            padding: 12px;
-            border-radius: 4px;
-            border-left: 4px solid var(--danger-color);
+        .confidence-bar {
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .confidence-level {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+            background: linear-gradient(90deg, #2ecc71, #3498db);
+        }
+        .confidence-value {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+        }
+        .top-result {
+            background-color: #d5f5e3;
+            border-left: 5px solid #2ecc71;
         }
     </style>
 </head>
 <body>
     <div id="app-container">
         <h1>Classificador de Imagens</h1>
-        <p class="subtitle">Envie uma imagem para análise usando inteligência artificial</p>
+        <p class="subtitle">Envie uma imagem para classificação automática</p>
         
-        <div id="status" class="loading-container">
-            <span class="loading"></span>
-            <span>Carregando modelo de classificação...</span>
+        <div id="status" class="status">
+            <span class="loading"></span> Carregando classificador...
         </div>
         
         <div id="image-container">
             <label id="upload-label" for="image-upload">
-                <div style="font-size: 18px; margin-bottom: 8px;">📷</div>
-                <div>Clique para selecionar ou arraste uma imagem</div>
-                <div style="font-size: 13px; margin-top: 8px; color: #5F6368;">Formatos suportados: JPG, PNG</div>
-                <input type="file" id="image-upload" accept="image/jpeg, image/png" style="display:none;">
+                <div>Clique para selecionar ou arraste uma imagem aqui</div>
+                <input type="file" id="image-upload" accept="image/*" style="display:none;">
             </label>
             <img id="image-preview" alt="Pré-visualização da imagem">
         </div>
         
         <div id="controls">
             <button id="classify-button" class="button" disabled>Classificar Imagem</button>
-            <button id="reset-button" class="button" disabled>Limpar</button>
+            <button id="reset-button" class="button" disabled>Nova Imagem</button>
         </div>
         
         <div id="result"></div>
@@ -206,60 +181,49 @@
             imageContainer: document.getElementById('image-container')
         };
 
-        // URLs do modelo atual (8FnH1Acv5)
-        const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/8FnH1Acv5/model.json';
-        const METADATA_URL = 'https://teachablemachine.withgoogle.com/models/8FnH1Acv5/metadata.json';
+        // URLs do novo modelo (atualizadas com seu link)
+        const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/HZMdewx99/model.json';
+        const METADATA_URL = 'https://teachablemachine.withgoogle.com/models/HZMdewx99/metadata.json';
 
         // Variáveis globais
         let model;
-        let classNames = [];
+        let classNames = []; // Será preenchido com os nomes das classes do seu modelo
         
         // Inicialização da aplicação
         async function init() {
             try {
-                // Verifica se as bibliotecas estão carregadas
+                // 1. Verifica se as bibliotecas estão carregadas
                 if (typeof tf === 'undefined' || typeof tmImage === 'undefined') {
                     throw new Error('Bibliotecas de IA não carregadas');
                 }
                 
-                // Configura o backend do TensorFlow
+                // 2. Configura o backend do TensorFlow
                 await tf.setBackend('webgl');
                 
-                // Atualiza status
-                elements.statusDiv.innerHTML = `
-                    <span class="loading"></span>
-                    <span>Carregando modelo de classificação...</span>
-                `;
+                // 3. Carrega o modelo com timeout
+                elements.statusDiv.innerHTML = '<span class="loading"></span> Carregando modelo de classificação...';
                 
-                // Carrega o modelo com timeout
                 model = await loadModelWithTimeout(MODEL_URL, METADATA_URL, 20000);
                 
-                // Obtém os nomes das classes
-                classNames = model.getClassLabels();
-                console.log('Classes do modelo:', classNames);
+                // 4. Obtém os nomes das classes do modelo
+                classNames = model.getClassLabels(); // Isso pegará automaticamente os nomes das classes que você definiu no Teachable Machine
+                console.log("Classes do modelo:", classNames);
                 
-                // Atualiza interface
-                elements.statusDiv.innerHTML = `
-                    <span style="color:var(--success-color)">✓</span>
-                    <span>Modelo carregado com sucesso!</span>
-                `;
+                // 5. Atualiza interface
+                elements.statusDiv.innerHTML = '<span style="color:#2ecc71">✓</span> Classificador pronto para uso!';
+                elements.classifyButton.disabled = true;
+                elements.resetButton.disabled = true;
                 
-                // Configura listeners
+                // 6. Configura listeners
                 setupEventListeners();
                 
             } catch (error) {
                 console.error('Erro na inicialização:', error);
-                elements.statusDiv.innerHTML = `
-                    <span style="color:var(--danger-color)">✗</span>
-                    <span>Erro ao carregar o modelo</span>
+                elements.statusDiv.innerHTML = `<span style="color:#e74c3c">✗</span> Erro: ${error.message || 'Falha ao carregar o classificador'}`;
+                elements.resultDiv.innerHTML = `
+                    <p>Não foi possível carregar o sistema de classificação.</p>
+                    <p>Por favor, verifique sua conexão com a internet e recarregue a página.</p>
                 `;
-                showResultMessage(`
-                    <div class="error-message">
-                        <strong>Não foi possível carregar o classificador.</strong><br>
-                        Por favor, verifique sua conexão com a internet e recarregue a página.<br>
-                        <small>Detalhes: ${error.message}</small>
-                    </div>
-                `, 'error');
             }
         }
 
@@ -267,7 +231,7 @@
         async function loadModelWithTimeout(modelUrl, metadataUrl, timeout) {
             return new Promise(async (resolve, reject) => {
                 const timer = setTimeout(() => {
-                    reject(new Error('Tempo excedido ao carregar o modelo. Verifique sua conexão.'));
+                    reject(new Error('Tempo excedido. Sua conexão pode estar lenta.'));
                 }, timeout);
 
                 try {
@@ -289,16 +253,19 @@
             // Upload por drag and drop
             elements.imageContainer.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                elements.imageContainer.classList.add('drag-over');
+                elements.imageContainer.style.borderColor = '#3498db';
+                elements.imageContainer.style.backgroundColor = '#ebf5fb';
             });
             
             elements.imageContainer.addEventListener('dragleave', () => {
-                elements.imageContainer.classList.remove('drag-over');
+                elements.imageContainer.style.borderColor = '#bdc3c7';
+                elements.imageContainer.style.backgroundColor = '#f8f9fa';
             });
             
             elements.imageContainer.addEventListener('drop', (e) => {
                 e.preventDefault();
-                elements.imageContainer.classList.remove('drag-over');
+                elements.imageContainer.style.borderColor = '#bdc3c7';
+                elements.imageContainer.style.backgroundColor = '#f8f9fa';
                 
                 if (e.dataTransfer.files.length) {
                     elements.imageUpload.files = e.dataTransfer.files;
@@ -318,11 +285,7 @@
                 
                 // Verifica se é uma imagem
                 if (!file.type.match('image.*')) {
-                    showResultMessage(`
-                        <div class="error-message">
-                            Por favor, selecione um arquivo de imagem válido (JPG ou PNG).
-                        </div>
-                    `, 'error');
+                    showResultMessage('Por favor, selecione um arquivo de imagem válido.', 'error');
                     return;
                 }
                 
@@ -346,77 +309,64 @@
         // Classifica a imagem
         async function classifyImage() {
             if (!model || !elements.imagePreview.src) {
-                showResultMessage(`
-                    <div class="error-message">
-                        Sistema não está pronto para análise. Tente recarregar a página.
-                    </div>
-                `, 'error');
+                showResultMessage('Sistema não está pronto para análise.', 'error');
                 return;
             }
             
             // Mostra status de processamento
             elements.classifyButton.disabled = true;
-            showResultMessage(`
-                <div class="loading-container">
-                    <span class="loading"></span>
-                    <span>Analisando imagem...</span>
-                </div>
-            `, 'loading');
+            showResultMessage('<span class="loading"></span> Analisando imagem...', 'loading');
             
             try {
                 // Faz a previsão
                 const predictions = await model.predict(elements.imagePreview);
                 
                 // Processa resultados
-                displayResults(predictions);
+                displayClassificationResults(predictions);
                 
             } catch (error) {
                 console.error('Erro na classificação:', error);
-                showResultMessage(`
-                    <div class="error-message">
-                        <strong>Erro durante a análise:</strong><br>
-                        ${error.message || 'Ocorreu um problema ao processar a imagem'}
-                    </div>
-                `, 'error');
+                showResultMessage(`Erro durante a análise: ${error.message}`, 'error');
             } finally {
                 elements.classifyButton.disabled = false;
             }
         }
 
         // Exibe os resultados da classificação
-        function displayResults(predictions) {
-            // Ordena as previsões por probabilidade
+        function displayClassificationResults(predictions) {
+            // Ordena as previsões por probabilidade (maior primeiro)
             predictions.sort((a, b) => b.probability - a.probability);
+            
+            // Pega a previsão principal
+            const topPrediction = predictions[0];
             
             // Cria o HTML do resultado
             let html = `
                 <div class="result-item top-result">
-                    <div class="result-label">
-                        <span>Classificação principal:</span>
-                        <span><strong>${predictions[0].className}</strong></span>
+                    <div style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">
+                        Classificação principal: <strong>${topPrediction.className}</strong>
                     </div>
-                    <div class="confidence-bar-container">
-                        <div class="confidence-bar" style="width: ${predictions[0].probability * 100}%"></div>
-                    </div>
-                    <div class="confidence-value">
-                        Confiança: ${(predictions[0].probability * 100).toFixed(1)}%
+                    <div>Nível de confiança:</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-level" style="width: ${topPrediction.probability * 100}%">
+                            <div class="confidence-value">${(topPrediction.probability * 100).toFixed(1)}%</div>
+                        </div>
                     </div>
                 </div>
             `;
             
-            // Adiciona outras possibilidades
+            // Adiciona outras possíveis classificações
             if (predictions.length > 1) {
-                html += `<div style="margin: 16px 0 8px; font-weight: 500;">Outras possibilidades:</div>`;
+                html += `<div style="margin-top: 20px; font-weight: bold;">Outras possibilidades:</div>`;
                 
-                for (let i = 1; i < Math.min(predictions.length, 3); i++) {
+                for (let i = 1; i < Math.min(3, predictions.length); i++) {
                     html += `
                         <div class="result-item">
-                            <div class="result-label">
-                                <span>${predictions[i].className}</span>
-                                <span>${(predictions[i].probability * 100).toFixed(1)}%</span>
-                            </div>
-                            <div class="confidence-bar-container">
-                                <div class="confidence-bar" style="width: ${predictions[i].probability * 100}%"></div>
+                            <div>${predictions[i].className}</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-level" style="width: ${predictions[i].probability * 100}%">
+                                    <div class="confidence-value">${(predictions[i].probability * 100).toFixed(1)}%</div>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -440,6 +390,10 @@
         // Mostra mensagens de status
         function showResultMessage(message, type) {
             elements.resultDiv.innerHTML = message;
+            if (type === 'error') {
+                elements.resultDiv.style.backgroundColor = '#fadbd8';
+                elements.resultDiv.style.borderLeft = '5px solid #e74c3c';
+            }
         }
 
         // Inicia a aplicação quando a página carrega
