@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador de Imagens</title>
+    <style>
+        :root {
+            --primary-color: #4285F4;
+            --success-color: #34A853;
+            --warning-color: #FBBC05;
+            --danger-color: #EA4335;
+            --light-gray: #F1F3F4;
+            --dark-gray: #5F6368;
+        }
+        body {
+            font-family: 'Google Sans', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #202124;
+        }
+        #app-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .subtitle {
+            color: var(--dark-gray);
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+        #image-container {
+            margin: 20px 0;
+            min-height: 250px;
+            border: 2px dashed #DADCE0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background-color: var(--light-gray);
+            transition: all 0.3s;
+        }
+        #image-container.drag-over {
+            border-color: var(--primary-color);
+            background-color: #E8F0FE;
+        }
+        #image-preview {
+            max-width: 100%;
+            max-height: 350px;
+            display: none;
+            border-radius: 4px;
+        }
+        #upload-label {
+            padding: 30px;
+            cursor: pointer;
+            color: var(--dark-gray);
+            text-align: center;
+        }
+        #controls {
+            margin: 24px 0;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            min-width: 160px;
+        }
+        .button:hover {
+            background-color: #3367D6;
+            box-shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+        .button:disabled {
+            background-color: var(--light-gray);
+            color: var(--dark-gray);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #result {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: var(--light-gray);
+            transition: all 0.3s;
+        }
+        .top-result {
+            background-color: #E6F4EA;
+            border-left: 4px solid var(--success-color);
+        }
+        .result-item {
+            margin-bottom: 16px;
+            padding: 12px;
+            border-radius: 4px;
+            background-color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .result-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .confidence-bar-container {
+            height: 8px;
+            background-color: #E0E0E0;
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        .confidence-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            transition: width 0.5s ease-out;
+        }
+        .confidence-value {
+            font-size: 13px;
+            color: var(--dark-gray);
+        }
+        .loading-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(66,133,244,0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .error-message {
+            color: var(--danger-color);
+            background-color: #FCE8E6;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 4px solid var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <h1>Classificador de Imagens</h1>
+        <p class="subtitle">Envie uma imagem para análise usando inteligência artificial</p>
+        
+        <div id="status" class="loading-container">
+            <span class="loading"></span>
+            <span>Carregando modelo de classificação...</span>
+        </div>
+        
+        <div id="image-container">
+            <label id="upload-label" for="image-upload">
+                <div style="font-size: 18px; margin-bottom: 8px;">📷</div>
+                <div>Clique para selecionar ou arraste uma imagem</div>
+                <div style="font-size: 13px; margin-top: 8px; color: #5F6368;">Formatos suportados: JPG, PNG</div>
+                <input type="file" id="image-upload" accept="image/jpeg, image/png" style="display:none;">
+            </label>
+            <img id="image-preview" alt="Pré-visualização da imagem">
+        </div>
+        
+        <div id="controls">
+            <button id="classify-button" class="button" disabled>Classificar Imagem</button>
+            <button id="reset-button" class="button" disabled>Limpar</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <!-- Carrega TensorFlow.js e Teachable Machine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    
+    <script>
+        // Elementos da interface
+        const elements = {
+            imageUpload: document.getElementById('image-upload'),
+            imagePreview: document.getElementById('image-preview'),
+            classifyButton: document.getElementById('classify-button'),
+            resetButton: document.getElementById('reset-button'),
+            resultDiv: document.getElementById('result'),
+            statusDiv: document.getElementById('status'),
+            uploadLabel: document.getElementById('upload-label'),
+            imageContainer: document.getElementById('image-container')
+        };
+
+        // URLs do modelo atual (8FnH1Acv5)
+        const MODEL_URL = 'https://teachablemachine.withgoogle.com/models/8FnH1Acv5/model.json';
+        const METADATA_URL = 'https://teachablemachine.withgoogle.com/models/8FnH1Acv5/metadata.json';
+
+        // Variáveis globais
+        let model;
+        let classNames = [];
+        
+        // Inicialização da aplicação
+        async function init() {
+            try {
+                // Verifica se as bibliotecas estão carregadas
+                if (typeof tf === 'undefined' || typeof tmImage === 'undefined') {
+                    throw new Error('Bibliotecas de IA não carregadas');
+                }
+                
+                // Configura o backend do TensorFlow
+                await tf.setBackend('webgl');
+                
+                // Atualiza status
+                elements.statusDiv.innerHTML = `
+                    <span class="loading"></span>
+                    <span>Carregando modelo de classificação...</span>
+                `;
+                
+                // Carrega o modelo com timeout
+                model = await loadModelWithTimeout(MODEL_URL, METADATA_URL, 20000);
+                
+                // Obtém os nomes das classes
+                classNames = model.getClassLabels();
+                console.log('Classes do modelo:', classNames);
+                
+                // Atualiza interface
+                elements.statusDiv.innerHTML = `
+                    <span style="color:var(--success-color)">✓</span>
+                    <span>Modelo carregado com sucesso!</span>
+                `;
+                
+                // Configura listeners
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                elements.statusDiv.innerHTML = `
+                    <span style="color:var(--danger-color)">✗</span>
+                    <span>Erro ao carregar o modelo</span>
+                `;
+                showResultMessage(`
+                    <div class="error-message">
+                        <strong>Não foi possível carregar o classificador.</strong><br>
+                        Por favor, verifique sua conexão com a internet e recarregue a página.<br>
+                        <small>Detalhes: ${error.message}</small>
+                    </div>
+                `, 'error');
+            }
+        }
+
+        // Carrega o modelo com timeout
+        async function loadModelWithTimeout(modelUrl, metadataUrl, timeout) {
+            return new Promise(async (resolve, reject) => {
+                const timer = setTimeout(() => {
+                    reject(new Error('Tempo excedido ao carregar o modelo. Verifique sua conexão.'));
+                }, timeout);
+
+                try {
+                    const loadedModel = await tmImage.load(modelUrl, metadataUrl);
+                    clearTimeout(timer);
+                    resolve(loadedModel);
+                } catch (error) {
+                    clearTimeout(timer);
+                    reject(error);
+                }
+            });
+        }
+
+        // Configura os event listeners
+        function setupEventListeners() {
+            // Upload por clique
+            elements.imageUpload.addEventListener('change', handleImageUpload);
+            
+            // Upload por drag and drop
+            elements.imageContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                elements.imageContainer.classList.add('drag-over');
+            });
+            
+            elements.imageContainer.addEventListener('dragleave', () => {
+                elements.imageContainer.classList.remove('drag-over');
+            });
+            
+            elements.imageContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                elements.imageContainer.classList.remove('drag-over');
+                
+                if (e.dataTransfer.files.length) {
+                    elements.imageUpload.files = e.dataTransfer.files;
+                    handleImageUpload({ target: elements.imageUpload });
+                }
+            });
+            
+            // Botões
+            elements.classifyButton.addEventListener('click', classifyImage);
+            elements.resetButton.addEventListener('click', resetAnalysis);
+        }
+
+        // Manipula o upload da imagem
+        function handleImageUpload(event) {
+            if (event.target.files && event.target.files[0]) {
+                const file = event.target.files[0];
+                
+                // Verifica se é uma imagem
+                if (!file.type.match('image.*')) {
+                    showResultMessage(`
+                        <div class="error-message">
+                            Por favor, selecione um arquivo de imagem válido (JPG ou PNG).
+                        </div>
+                    `, 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    elements.imagePreview.src = e.target.result;
+                    elements.imagePreview.style.display = 'block';
+                    elements.uploadLabel.style.display = 'none';
+                    elements.classifyButton.disabled = false;
+                    elements.resetButton.disabled = false;
+                    
+                    // Limpa resultados anteriores
+                    elements.resultDiv.innerHTML = '';
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Classifica a imagem
+        async function classifyImage() {
+            if (!model || !elements.imagePreview.src) {
+                showResultMessage(`
+                    <div class="error-message">
+                        Sistema não está pronto para análise. Tente recarregar a página.
+                    </div>
+                `, 'error');
+                return;
+            }
+            
+            // Mostra status de processamento
+            elements.classifyButton.disabled = true;
+            showResultMessage(`
+                <div class="loading-container">
+                    <span class="loading"></span>
+                    <span>Analisando imagem...</span>
+                </div>
+            `, 'loading');
+            
+            try {
+                // Faz a previsão
+                const predictions = await model.predict(elements.imagePreview);
+                
+                // Processa resultados
+                displayResults(predictions);
+                
+            } catch (error) {
+                console.error('Erro na classificação:', error);
+                showResultMessage(`
+                    <div class="error-message">
+                        <strong>Erro durante a análise:</strong><br>
+                        ${error.message || 'Ocorreu um problema ao processar a imagem'}
+                    </div>
+                `, 'error');
+            } finally {
+                elements.classifyButton.disabled = false;
+            }
+        }
+
+        // Exibe os resultados da classificação
+        function displayResults(predictions) {
+            // Ordena as previsões por probabilidade
+            predictions.sort((a, b) => b.probability - a.probability);
+            
+            // Cria o HTML do resultado
+            let html = `
+                <div class="result-item top-result">
+                    <div class="result-label">
+                        <span>Classificação principal:</span>
+                        <span><strong>${predictions[0].className}</strong></span>
+                    </div>
+                    <div class="confidence-bar-container">
+                        <div class="confidence-bar" style="width: ${predictions[0].probability * 100}%"></div>
+                    </div>
+                    <div class="confidence-value">
+                        Confiança: ${(predictions[0].probability * 100).toFixed(1)}%
+                    </div>
+                </div>
+            `;
+            
+            // Adiciona outras possibilidades
+            if (predictions.length > 1) {
+                html += `<div style="margin: 16px 0 8px; font-weight: 500;">Outras possibilidades:</div>`;
+                
+                for (let i = 1; i < Math.min(predictions.length, 3); i++) {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-label">
+                                <span>${predictions[i].className}</span>
+                                <span>${(predictions[i].probability * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="confidence-bar-container">
+                                <div class="confidence-bar" style="width: ${predictions[i].probability * 100}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            elements.resultDiv.innerHTML = html;
+        }
+
+        // Reseta a análise
+        function resetAnalysis() {
+            elements.imagePreview.src = '';
+            elements.imagePreview.style.display = 'none';
+            elements.uploadLabel.style.display = 'block';
+            elements.classifyButton.disabled = true;
+            elements.resetButton.disabled = true;
+            elements.resultDiv.innerHTML = '';
+            elements.imageUpload.value = '';
+        }
+
+        // Mostra mensagens de status
+        function showResultMessage(message, type) {
+            elements.resultDiv.innerHTML = message;
+        }
+
+        // Inicia a aplicação quando a página carrega
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
